@@ -100,6 +100,25 @@ function movieFunction() {
     fs.appendFile("log.txt", ", " + userInput + " " + alternateUserInput);
 };
 
+
+// // //Function needed for Do-what-it-says
+function doWhatItSaysFunction() {
+    fs.readFile("random.txt", "utf8", function (error, body) {
+        console.log(body);
+        var bodyArr = body.split(",");
+        if (bodyArr[0] === "my-tweets") {
+            twitterFunction();
+        } else if (bodyArr[0] === "spotify-this-song") {
+            spotifyFunction();
+        } else if (bodyArr[0] === "movie-this") {
+            movieFunction();
+        }
+
+    })
+    //The user input will append to the log.txt file(ex. do-what-it-says + my tweets)
+    fs.appendFile("log.txt", ", " + userInput + " " + alternateUserInput);
+};
+
 //spotify api
 
 //search: 
