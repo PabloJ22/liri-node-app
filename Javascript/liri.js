@@ -1,17 +1,46 @@
 //dotenv
+let request = require("request");
 
-require("dotenv").config();
+console.log('Enter "my-tweets", "spotify-this-song", "movie-this" or "do-what-it-says"');
+// require("dotenv").config();
 
-const db = require('db')
-db.connect({
-    host: process.env.DB_HOST,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS
-});
+// const db = require('db')
+// db.connect({
+//     host: process.env.DB_HOST,
+//     username: process.env.DB_USER,
+//     password: process.env.DB_PASS
+// });
 
 //omdb api
 //request
-var request = require("request");
+
+// //input letiables
+let userInput = process.argv[2];
+let alternateUserInput = process.argv[3];
+let request = require("request");
+
+
+switch (userInput) {
+    // case 'my-tweets':
+    //     twitterFunction();
+    //     break;
+
+    case 'spotify-this-song':
+        spotifyFunction();
+        break;
+
+    case 'movie-this':
+        movieFunction();
+        break;
+
+    case 'do-what-it-says':
+        doWhatItSaysFunction();
+        break;
+
+    default:
+        console.log("Enter 'myTwitter', 'spotifyThisSong', 'movie-this', or 'do-what-it-says'");
+}
+
 
 request("http://www.omdbapi.com/?apikey=[yourkey]&", function (error, response, body) {
     console.log(typeof body);
