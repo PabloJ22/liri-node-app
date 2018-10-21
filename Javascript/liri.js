@@ -1,148 +1,124 @@
-//dotenv
+require("dotenv").config();
+
+let dEnv = process.env;
+
 let request = require("request");
-
-console.log('Enter "my-tweets", "spotify-this-song", "movie-this" or "do-what-it-says"');
-// require("dotenv").config();
-
-// const db = require('db')
-// db.connect({
-//     host: process.env.DB_HOST,
-//     username: process.env.DB_USER,
-//     password: process.env.DB_PASS
-// });
-
-//omdb api
-//request
-
-// //input letiables
-let userInput = process.argv[2];
-let alternateUserInput = process.argv[3];
-let request = require("request");
+let keys = require("./keys.js");
+let Twitter = require('twitter');
+let inquirer = require("inquirer");
+let Spotify = require('node-spotify-api');
+let nodeArgs = process.argv;
+let movieName = "";
 
 
-switch (userInput) {
-    // case 'my-tweets':
-    //     twitterFunction();
-    //     break;
-
-    case 'spotify-this-song':
-        spotifyFunction();
-        break;
-
-    case 'movie-this':
-        movieFunction();
-        break;
-
-    case 'do-what-it-says':
-        doWhatItSaysFunction();
-        break;
-
-    default:
-        console.log("Enter 'myTwitter', 'spotifyThisSong', 'movie-this', or 'do-what-it-says'");
-}
-
-
-request("http://www.omdbapi.com/?apikey=[yourkey]&", function (error, response, body) {
-    console.log(typeof body);
-    // If the request was successful...
-    if (!error && response.statusCode === 200) {
-        console.log(body);
-    }
+//initalizing twitter
+let client = new Twitter({
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+    access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+    access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
 
+let spotify = new Spotify(keys.spotify);
+let client = new Twitter(keys.twitter);
 
-request("http://www.omdbapi.com/?t=remember+the+titans&y=&plot=short&apikey=trilogy", function (error, response, body) {
 
-    // If the request is successful (i.e. if the response status code is 200)
-    if (!error && response.statusCode === 200) {
+inquirer.prompt([{
+    type: "input",
+    message: "Whatcha wanna do???",
+    name: "search"
+}]).then(function (inquirerResponse) {
 
-        console.log("The movie's rating is: " + JSON.parse(body).imdbRating);
+
+    switch (inquirerResponse.search) {
+        case "my-tweets":
+            myTweets();
+            break;
+        case "spotify-this-song":
+
+            spotifyThis();
+            break;
+        case "movie-this":
+            movie();
+            break;
+        case "do-what-it-says":
+            doIt();
+            break;
+        default:
+            console.log("unusable command, please use an appropriate command. ")
     }
-});
 
 
 
-// This function will have the user enter a movie title and pull information which will print to the terminal.
-function movieFunction() {
-    //console.log when entering the function
-    console.log("Entering Movie Function");
 
-    //variable to store the movie title the user inputs
-    //if user does not put in any input the movie will default to Mr.Nobody
-    var movieTitle;
-    if (alternateUserInput === undefined) {
-        movieTitle = "Mr. Nobody";
-    } else {
-        movieTitle = alternateUserInput;
+
+})
+
+function myTweets() {
+    console.log("Tweet Tweet");
+    let params = {
+        screen_name: ''
     };
+    client.get('statuses/user_timeline', params, function (error, tweets, response) {
+        if (!error) {
+            // console.log(tweets);
+            // console.log(JSON.stringify(tweets,['text',]));
+            let tweetArr = JSON.stringify(tweets, ['text', ]);
+            let twObj = JSON.parse(tweetArr);
+            console.log(twObj);
 
 
-    //Request Code line found in OMDB in class assignment
-    //var movieTitle is put in the middle of the URL where the movie title is requested
-    request("http://www.omdbapi.com/?t=" + movieTitle + "&plot=short&r=json &tomatoes=true", function (error, response, body) {
-        if (!error && response.statusCode === 200) {
-            //an alterative to using JSON.parse(body) for all console.logs would be to create a variable =JSON.parse(body).  e.x. console.log("The movie's title is: " + variable.Title);
-            //Model Fields found at = https://media.readthedocs.org/pdf/omdbpy/latest/omdbpy.pdf
-            console.log("The movie's title is: " + JSON.parse(body).Title);
-            console.log("The movie was released in: " + JSON.parse(body).Year);
-            console.log("The movie's rating is: " + JSON.parse(body).imdbRating);
-            console.log("This movie was produced in: " + JSON.parse(body).Country);
-            console.log("This movie is available in: " + JSON.parse(body).Language);
-            console.log("This movie's plot is:  " + JSON.parse(body).Plot);
-            console.log("The movie has the following actors: " + JSON.parse(body).Actors);
-            //ROTTEN TOMATOES RATING AND WEBSITE
-            console.log("The Rotten Tomatoes score for this film is " + JSON.parse(body).tomatoRating);
-            console.log("The Rotten Tomatoes URL for this film is " + JSON.parse(body).tomatoURL);
         }
     });
-    //The user input will append to the log.txt file(ex. movie-this + movie title)
-    fs.appendFile("log.txt", ", " + userInput + " " + alternateUserInput);
-};
+}
 
+function spotifyThis() {
 
-// // //Function needed for Do-what-it-says
-function doWhatItSaysFunction() {
-    fs.readFile("random.txt", "utf8", function (error, body) {
-        console.log(body);
-        var bodyArr = body.split(",");
-        if (bodyArr[0] === "my-tweets") {
-            twitterFunction();
-        } else if (bodyArr[0] === "spotify-this-song") {
-            spotifyFunction();
-        } else if (bodyArr[0] === "movie-this") {
-            movieFunction();
+    spotify.search({
+        type: 'track',
+        query: 'And the beat goes on'
+    }, function (err, data) {
+        if (err) {
+            return console.log('Error occurred: ' + err);
         }
 
-    })
-    //The user input will append to the log.txt file(ex. do-what-it-says + my tweets)
-    fs.appendFile("log.txt", ", " + userInput + " " + alternateUserInput);
-};
+        console.log(data);
+    });
 
-//spotify api
+}
 
-//search: 
-// function ({
-//     type: 'artist OR album OR track',
-//     query: 'My search query',
-//     limit: 20
-// }, callback);
+function movie() {
+    console.log("Watch a Movie!");
 
+    inquirer.prompt([{
+        type: "input",
+        message: "What movie?",
+        name: "search"
+    }]).then(function (inquirerResponse) {
+        movieName = inquirerResponse.search;
+        let queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
 
-// var Spotify = require('node-spotify-api');
+        //   console.log(queryUrl);
 
-// var spotify = new Spotify({
-//     id: < your spotify client id > ,
-//     secret: < your spotify client secret >
-// });
+        request(queryUrl, function (error, response, body) {
 
-// spotify.search({
-//     type: 'track',
-//     query: 'All the Small Things'
-// }, function (err, data) {
-//     if (err) {
-//         return console.log('Error occurred: ' + err);
-//     }
+            if (!error && response.statusCode === 200) {
+                console.log("Title: " + JSON.parse(body).Title)
+                console.log("Release Year: " + JSON.parse(body).Year)
+                console.log("IMDB Rating: " + JSON.parse(body).imdbRating)
+                console.log("Rotten Tomatoes Rating: " + JSON.parse(body).Ratings.Tomatoes)
+                console.log("Country: " + JSON.parse(body).Country)
+                console.log("Language: " + JSON.parse(body).Language)
+                console.log("Plot: " + JSON.parse(body).Plot)
+                console.log("Actors: " + JSON.parse(body).Actors)
 
-//     console.log(data);
-// });
+            }
+        });
+    });
+
+}
+
+function doIt() {
+    console.log("Do it...");
+}
